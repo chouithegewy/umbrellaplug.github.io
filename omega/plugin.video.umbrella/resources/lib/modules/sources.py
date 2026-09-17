@@ -35,6 +35,7 @@ internal_scrapers_clouds_list = [('realdebrid', 'rd_cloud', 'rd'), ('premiumize'
 class Sources:
 	def __init__(self, all_providers=False, custom_query=False, filterless_scrape=False, rescrapeAll=False):
 		self.sources = []
+		self.url = None  # errorForSources() reads this on the zero-sources path, where no branch assigns it
 		self.scraper_sources = []
 		self.uncached_chosen = False
 		self.isPrescrape = False

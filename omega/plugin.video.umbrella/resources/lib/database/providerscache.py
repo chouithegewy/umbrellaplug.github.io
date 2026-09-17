@@ -22,8 +22,18 @@ def get(function, duration, *args):
 		key = _hash_function(function, rev_args)
 		cache_result = cache_get(key)
 		if cache_result:
-			result = literal_eval(cache_result['value'])
-			if _is_cache_valid(cache_result['date'], duration):
+			try:
+				result = literal_eval(cache_result['value'])
+			except Exception:
+				# Unparseable cache entry -> treat as a MISS and re-scrape.
+				# Previously this propagated to the outer handler, so the entire
+				# lookup returned None and the user saw "no sources found" even
+				# though a fresh scrape would have succeeded.
+				from resources.lib.modules import log_utils
+				log_utils.error()
+				result = None
+				cache_result = None
+			if cache_result and _is_cache_valid(cache_result['date'], duration):
 				return result
 
 		fresh_result = repr(function(*args)) # may need a try-except block for server timeouts

@@ -30,7 +30,7 @@ def router(argv2):
 	select = params.get('select')
 	folder = params.get('folder')
 	current_setting = params.get('setting')
-	folderName = params.get('folderName')
+	folderName = params.get('folderName') or ''  # never None: 67 quote_plus(folderName) call sites raise TypeError on None
 	mediatype = params.get('mediatype')
 	listType = params.get('listtype')
 	genre = params.get('genre')

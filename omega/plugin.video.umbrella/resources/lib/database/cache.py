@@ -61,9 +61,19 @@ def get(function, duration, *args):
 		cache_result = cache_get(key)
 		if cache_result:
 			from resources.lib.modules import log_utils
-			try: result = literal_eval(cache_result['value'])
-			except: result = None
-			if _is_cache_valid(cache_result['date'], duration):
+			try:
+				result = literal_eval(cache_result['value'])
+			except Exception:
+				# An unparseable cache entry is a cache MISS, not an empty result.
+				# Returning None here silently blanks directory listings (lists render
+				# zero items with nothing logged). Seen in the wild on 32-bit
+				# Android/ARM builds as:
+				#   SystemError: AST constructor recursion depth mismatch
+				# Fall through to re-fetch instead of serving None as valid data.
+				log_utils.error()
+				result = None
+				cache_result = None
+			if cache_result and _is_cache_valid(cache_result['date'], duration):
 				return result
 
 		fresh_result = repr(function(*args)) # may need a try-except block for server timeouts

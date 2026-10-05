@@ -16,6 +16,30 @@ If search looks empty, open the left sidebar and check this filter first.
 Validate the visible directory as well as an API listing; an API listing alone
 does not validate Kodi's view filters.
 
+## Open Umbrella on Kodi startup
+
+In the follow-up investigation, **Launch Umbrella on Kodi Start**
+(`umbrella.autostart`) was `false` in the saved profile XML, Kodi's native
+add-on settings, and Umbrella's shared settings cache. The startup service log
+at 21:54:55 showed the autostart check executing and finishing. Its implementation
+only calls `RunAddon(plugin.video.umbrella)` when the flag is `true`, so the
+disabled flag explains why Umbrella did not open. There is no setting-change
+history establishing when or why it became disabled; its shipped default is
+`false`. The installed service matched this checkout.
+
+The existing option was enabled with Kodi's native
+`Addon('plugin.video.umbrella').setSettingBool('umbrella.autostart', True)` from
+a background-only script. The script was invoked directly through Kodi's
+EventServer `RunScript` action, avoiding a plugin launch or screen navigation.
+Native readback, saved XML, and the shared settings cache all confirmed `true`.
+The Kodi process and fullscreen video window were unchanged, and playback
+continued advancing at normal speed. The temporary script was removed afterward.
+
+The startup feature runs once when Kodi starts a fresh process. Returning to an
+already-running Kodi instance resumes its current activity. A fresh-launch test
+was deliberately deferred because the user prohibited closing, restarting, or
+stopping Kodi during the movie. No startup service code needed to change.
+
 ## Umbrella cache parser failures
 
 The collected logs also contain an AST parser `SystemError`, pagination errors

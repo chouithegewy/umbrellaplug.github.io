@@ -94,6 +94,8 @@ native crashes, binary module compatibility or Android memory pressure.
 ## Concrete opportunities in this Umbrella fork
 
 The following are source findings and proposed changes, not measured speedups.
+The [implementation spec](umbrella-reliability-spec.md) defines the delivery
+order, behavioral contracts, migration, tests and release gates for these changes.
 
 | Priority | Observed code | Proposed change and intended benefit |
 | --- | --- | --- |

@@ -39,8 +39,14 @@ def get_coalesced(function, duration, *args):
 		con.execute('CREATE TABLE IF NOT EXISTS result (id INTEGER PRIMARY KEY, completed REAL, value TEXT)')
 		row = con.execute('SELECT completed, value FROM result WHERE id=1').fetchone()
 		if row and row[0] >= started:
-			control.log_refresh_diagnostic('mdb-build-shared-result')
-			return literal_eval(row[1])
+			try:
+				result = literal_eval(row[1])
+			except Exception:
+				from resources.lib.modules import log_utils
+				log_utils.error()
+			else:
+				control.log_refresh_diagnostic('mdb-build-shared-result')
+				return result
 		result = get(function, duration, *args)
 		if result is not None:
 			con.execute('INSERT OR REPLACE INTO result VALUES (1, ?, ?)', (time(), repr(result)))
@@ -62,7 +68,8 @@ def get(function, duration, *args):
 		if cache_result:
 			from resources.lib.modules import log_utils
 			try:
-				result = literal_eval(cache_result['value'])
+				# SQL NULL is an intentional cached 404, rather than a parse failure.
+				result = literal_eval(cache_result['value']) if cache_result['value'] is not None else None
 			except Exception:
 				# An unparseable cache entry is a cache MISS, not an empty result.
 				# Returning None here silently blanks directory listings (lists render
@@ -76,7 +83,8 @@ def get(function, duration, *args):
 			if cache_result and _is_cache_valid(cache_result['date'], duration):
 				return result
 
-		fresh_result = repr(function(*args)) # may need a try-except block for server timeouts
+		fresh_value = function(*args)
+		fresh_result = repr(fresh_value)
 
 		if cache_result and (result and len(result) == 1) and fresh_result == '[]': # fix for syncSeason mark unwatched season when it's the last item remaining
 			if isinstance(result[0], str) and result[0].isdigit():
@@ -98,7 +106,8 @@ def get(function, duration, *args):
 				cache_insert(key, None) # cache_insert() "404:NOT FOUND" cases only as None type
 				return None
 			else: cache_insert(key, fresh_result)
-			return literal_eval(fresh_result)
+			# Returning fetched data must not depend on the cache parser succeeding.
+			return fresh_value
 	except:
 		from resources.lib.modules import log_utils
 		log_utils.error()

@@ -36,7 +36,8 @@ def get(function, duration, *args):
 			if cache_result and _is_cache_valid(cache_result['date'], duration):
 				return result
 
-		fresh_result = repr(function(*args)) # may need a try-except block for server timeouts
+		fresh_value = function(*args)
+		fresh_result = repr(fresh_value)
 		invalid = False
 		try:  # Sometimes None is returned as a string instead of None type for "fresh_result"
 			if not fresh_result: invalid = True
@@ -49,7 +50,8 @@ def get(function, duration, *args):
 			else: return None # do not cache_insert() None type, sometimes servers just down momentarily
 		else:
 			cache_insert(key, fresh_result)
-			return literal_eval(fresh_result)
+			# A successful scrape is already a Python value; do not parse it again.
+			return fresh_value
 	except:
 		from resources.lib.modules import log_utils
 		log_utils.error()

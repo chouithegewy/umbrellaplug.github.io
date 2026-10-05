@@ -8,3 +8,8 @@ UmbrellaCopyFromAddonFolder.log
 Umbrella_RoboCopyFromKodiL.bat
 settings.json
 *.bat
+
+# Private device diagnostics and local Python test artifacts.
+/logs/
+__pycache__/
+*.pyc

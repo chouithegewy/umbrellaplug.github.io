@@ -116,6 +116,39 @@ a permanent fix for this particular race requires a Kodi build containing these
 changes or a backport. An Umbrella Python patch cannot fix its host application's
 pre-Python launcher. Kodi was not upgraded during this repair.
 
+### October 5 recurrence, data clear and upgrade
+
+At 20:54 on October 5, Kodi 21.2 aborted while opening Umbrella, before any
+Umbrella code ran. The embedded interpreter failed with `Fatal Python error:
+init_fs_encoding`, and the native crash listed a bundled library from the
+extracted application cache as `(deleted)`. This matches the extraction race
+above. About a minute later, **Clear data** was run from Android Settings using
+the remote (`clearApplicationUserData`). That removed every add-on, setting and
+database, including the on-device `Addons33.db` backup. No ADB command was
+involved.
+
+Umbrella was reinstalled the same evening: the local cache-fix build of 6.7.90,
+`repository.umbrella`, `repository.cocoscrapers`, `script.module.cocoscrapers`,
+YouTube and the `requests` dependency chain. The packages came from each
+repository's published index after checksum verification. Add-on folders were
+copied into place, then `Addons33.db` was edited while Kodi was stopped. The
+edit restored the enabled states, original repository origins and the previous
+update rules, including automatic updates disabled for Umbrella. Umbrella's
+settings and account authorizations could not be recovered; they must be set up
+again.
+
+No official Android APK of Kodi 22 RC1 had been published, and the release
+mirror's newest 22 build, beta 2, predates both fixes. The master nightly
+`kodi-20261002-0056082c` (**23.0-ALPHA1**, Python 3.14.6) contains both commits.
+It is signed with the same XBMC Foundation certificate as the Play Store build,
+so it was installed as an in-place update after a profile backup. All 13 add-ons
+stayed enabled, Umbrella's main menu returned 11 entries, and two forced cold
+restarts produced no native crash or Python error. Playback was not tested.
+
+This is a development build. The Play Store will not replace it with Kodi 22,
+because 23.0-ALPHA1 has a higher version code. Returning to 21.x or 22 requires
+uninstalling, which clears Kodi's data again.
+
 For another failed startup, collect the current and old Kodi logs and Android
 native crash history **before** relaunching or clearing cache. If the same
 incomplete-asset failure recurs, stop Kodi, use Android's **Clear cache**, allow
